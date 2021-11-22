@@ -3,12 +3,16 @@ import random
 import math
 from pygame.constants import KEYDOWN
 from pygame.image import load
+from pygame import mixer
 #   asdasda
 pygame.init()
 
 screen = pygame.display.set_mode((800,600))
 # Background 
 backgrund = pygame.image.load('background.png')
+#Music
+mixer.music.load('background.wav')
+mixer.music.play(-1)
 
 pygame.display.set_caption("Space Invaders")
 icon = pygame.image.load('ufo.png')
@@ -46,6 +50,13 @@ font = pygame.font.Font('freesansbold.ttf',50)
 textX=14
 textY=14
 
+
+# Game Over
+over_font = pygame.font.Font('freesansbold.ttf', 64)
+def game_over_text():
+    over_text = over_font.render("GAME OVER", True, (255, 255, 255))
+    screen.blit(over_text, (200, 250))
+
 def show_score(x,y):
     score = font.render("Score: "+ str(score_value),True,(255,255,255))
     screen.blit(score,(x,y))
@@ -59,11 +70,14 @@ def fire_bullet(x,y):
     global bullet_state
     bullet_state = "fire"
     screen.blit(bullet_img,(x+16,y+10))
-def isCollision(enemyX,enemyY,bulletX,bulletY):
 
+def isCollision(enemyX,enemyY,bulletX,bulletY):
     distance = math.sqrt((math.pow(enemyX-bulletX,2)) +(math.pow(enemyY-bulletY,2)))
     if distance <30:
+        explaration_sound = mixer.Sound('explosion.wav')
+        explaration_sound.play()
         return True
+        
     else:
         return False    
 
@@ -84,6 +98,8 @@ while running:
 
             if event.key == pygame.K_SPACE:
                 if bullet_state == 'ready':
+                    bullet_sound = mixer.Sound('laser.wav')
+                    bullet_sound.play()
                     bulletX = playerX
                     fire_bullet(playerX,bulletY)
 
@@ -100,8 +116,16 @@ while running:
         playerX = 756
 
 
-    # Enameys movement 
+# Enameys movement 
     for i in range(num_of_enemy):
+
+        # Game Over
+        if enemyY[i] > 440:
+            for j in range(num_of_enemy):
+                enemyY[j] = 2000
+            game_over_text()
+            break
+
         enemyX[i] += enemyX_change[i]
         if enemyX[i] <=0:
             enemyX_change[i] = 1.5
